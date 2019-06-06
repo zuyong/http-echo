@@ -17,5 +17,6 @@ ENV EXPOSE_PORT=5678
 
 EXPOSE ${EXPOSE_PORT}/tcp
 COPY --from=golang /go/bin/http-echo       /usr/local/bin/http-echo
+ADD sample_response.json /
 
 ENTRYPOINT ["/usr/local/bin/http-echo"]

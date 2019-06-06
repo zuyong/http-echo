@@ -4,11 +4,14 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"reflect"
 	"time"
+	"unsafe"
 
 	"./version"
 )
@@ -16,6 +19,7 @@ import (
 var (
 	listenFlag  = flag.String("listen", ":5678", "address and port to listen")
 	textFlag    = flag.String("text", "", "text to put on the webpage")
+	fileFlag    = flag.String("file", "", "text file to put on the webpage")
 	versionFlag = flag.Bool("version", false, "display version information")
 
 	// stdoutW and stderrW are for overriding in test.
@@ -32,9 +36,19 @@ func main() {
 		os.Exit(0)
 	}
 
+	if *fileFlag != "" {
+		dat, err := ioutil.ReadFile(*fileFlag)
+		if err != nil {
+			panic(err)
+		}
+		bh := (*reflect.SliceHeader)(unsafe.Pointer(&dat))
+		sh := reflect.StringHeader{bh.Data, bh.Len}
+		textFlag = (*string)(unsafe.Pointer(&sh))
+	}
+
 	// Validation
 	if *textFlag == "" {
-		fmt.Fprintln(stderrW, "Missing -text option!")
+		fmt.Fprintln(stderrW, "Missing -text or -file option!")
 		os.Exit(127)
 	}
 
